@@ -26,7 +26,9 @@ SECRET_KEY = "django-insecure-aq&=i8a$ah&wbr33_9%@qtljz_)09ovc6w&a**(c08hx5_amdh
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
+
+INTERNAL_IPS = ["127.0.0.1"]
 
 
 # Application definition
@@ -145,4 +147,5 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=100),
     "ROTATE_REFRESH_TOKENS": False,
     "BLACKLIST_AFTER_ROTATION": True,
+    "AUTH_HEADER_NAME": "HTTP_AUTHORIZE",
 }
