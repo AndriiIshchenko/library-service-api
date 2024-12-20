@@ -14,9 +14,14 @@ class BookViewSet(
     mixins.CreateModelMixin,
     mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
+    mixins.RetrieveModelMixin,
 ):
-    serializer_class = BookSerializer()
+    serializer_class = BookSerializer
     queryset = Book.objects.all()
     permission_classes = [
         IsAdminUserOrReadOnly,
     ]
+
+    def update(self, request, *args, **kwargs):
+        kwargs["partial"] = True
+        return super().update(request, *args, **kwargs)
