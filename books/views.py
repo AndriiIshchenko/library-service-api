@@ -7,12 +7,7 @@ from books.models import Book
 from books.serializers import BookSerializer
 
 
-class BookListView(GenericViewSet, mixins.ListModelMixin):
-    serializer_class = BookSerializer()
-    queryset = Book.objects.all()
-
-
-class BookManageViewSet(
+class BookViewSet(
     GenericViewSet,
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
