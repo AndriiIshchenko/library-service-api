@@ -1,5 +1,4 @@
 from decimal import Decimal
-from re import T
 
 from django.db import models
 from django_enum import EnumField
