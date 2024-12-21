@@ -1,8 +1,10 @@
-from django.shortcuts import render
+from datetime import timezone
 
-from rest_framework import mixins
+from rest_framework import mixins, status
+from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.decorators import action
 
 from borrowing.models import Borrowing
 from borrowing.serializers import BorrowingSerializer
@@ -18,6 +20,10 @@ class BorrowingViewSet(
 ):
     serializer_class = BorrowingSerializer
     queryset = Borrowing.objects.all()
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
     def get_queryset(self):
         queryset = self.queryset
         is_active = self.request.query_params.get("is_active", None)
@@ -34,6 +40,11 @@ class BorrowingViewSet(
             queryset = queryset.filter(book_id=book_id)
 
         return queryset
+
+    def get_permissions(self):
+        if self.action in ["update", "destroy", "partial_update", "return_book"]:
+            self.permission_classes = [IsAdminUser]
+        return self.permission_classes
 
     @action(detail=True, methods=["PATCH "], url_path="return")
     def return_book(self, request, pk=None):
