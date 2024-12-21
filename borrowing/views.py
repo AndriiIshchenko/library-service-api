@@ -34,3 +34,12 @@ class BorrowingViewSet(
             queryset = queryset.filter(book_id=book_id)
 
         return queryset
+
+    @action(detail=True, methods=["PATCH "], url_path="return")
+    def return_book(self, request, pk=None):
+        borrowing = self.get_object()
+        borrowing.actual_return_date = timezone.now()
+        borrowing.save()
+        return Response(
+            {"message": "Book returned successfully"}, status=status.HTTP_200_OK
+        )
