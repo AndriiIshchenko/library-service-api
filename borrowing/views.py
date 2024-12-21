@@ -18,4 +18,19 @@ class BorrowingViewSet(
 ):
     serializer_class = BorrowingSerializer
     queryset = Borrowing.objects.all()
-    permission_classes = [IsAuthenticated,]
+    def get_queryset(self):
+        queryset = self.queryset
+        is_active = self.request.query_params.get("is_active", None)
+        user_id = self.request.query_params.get("user_id", None)
+        book_id = self.request.query_params.get("book_id", None)
+
+        if is_active == "true":
+            queryset = queryset.filter(actual_return_date=False)
+        if is_active == "false":
+            queryset = queryset.filter(actual_return_date=True)
+        if user_id:
+            queryset = queryset.filter(user_id=user_id)
+        if book_id:
+            queryset = queryset.filter(book_id=book_id)
+
+        return queryset
