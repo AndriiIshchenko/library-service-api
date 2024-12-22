@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models.constraints import CheckConstraint, Q
 
 
 class Borrowing(models.Model):
@@ -14,3 +15,12 @@ class Borrowing(models.Model):
 
     def __str__(self):
         return f"{self.user} borrowed {self.book}"
+
+    class Meta:
+        ordering = ["-borrow_date"]
+        constraints = [
+            CheckConstraint(
+                check=Q(expected_return_date__gt=models.F("borrow_date")),
+                name="expected_return_date_after_borrow_date",
+            )
+        ]
