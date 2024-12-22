@@ -68,10 +68,13 @@ class BorrowingReturnBookSerializer(serializers.ModelSerializer):
         read_only_fields = ["id"]
 
     def update(self, instance, validated_data) -> Borrowing:
-        with transaction.atomic():
-            instance.actual_return_date = validated_data.get("actual_return_date")
-            instance.save()
-            book = instance.book
-            book.inventory += 1
-            book.save()
-            return instance
+        if instance.actual_return_date is None:
+            with transaction.atomic():
+                instance.actual_return_date = validated_data.get("actual_return_date")
+                instance.save()
+                book = instance.book
+                book.inventory += 1
+                book.save()
+                return instance
+        else:
+            raise serializers.ValidationError("This book has already been returned.")
