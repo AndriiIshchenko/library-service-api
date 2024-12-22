@@ -20,9 +20,17 @@ class BorrowingViewSet(
 ):
     serializer_class = BorrowingSerializer
     queryset = Borrowing.objects.all()
-    permission_classes = [
-        IsAuthenticated,
-    ]
+
+    def get_permissions(self, *args, **kwargs):
+        permission_classes = [
+            IsAuthenticated(),
+        ]
+
+        if self.action in ["update", "destroy", "partial_update", "return_book"]:
+            permission_classes = [
+                IsAdminUser(),
+            ]
+        return permission_classes
 
     def get_queryset(self):
         queryset = self.queryset
