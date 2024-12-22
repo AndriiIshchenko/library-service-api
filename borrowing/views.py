@@ -1,8 +1,5 @@
 from django.utils import timezone
 
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_control
-
 from rest_framework import mixins, status
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -18,9 +15,6 @@ from borrowing.serializers import (
 )
 
 
-@method_decorator(
-    cache_control(no_cache=True, must_revalidate=True, no_store=True), name="dispatch"
-)
 class BorrowingViewSet(
     GenericViewSet,
     mixins.ListModelMixin,
@@ -44,7 +38,7 @@ class BorrowingViewSet(
         return permission_classes
 
     def get_queryset(self):
-        queryset = self.queryset
+        queryset = Borrowing.objects.all().select_related("user", "book")
         is_active = self.request.query_params.get("is_active", None)
         user_id = self.request.query_params.get("user_id", None)
         book_id = self.request.query_params.get("book_id", None)
