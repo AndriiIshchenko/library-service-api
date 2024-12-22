@@ -1,3 +1,4 @@
+from math import e
 from django.utils import timezone
 
 from rest_framework import mixins, status
@@ -38,7 +39,13 @@ class BorrowingViewSet(
         return permission_classes
 
     def get_queryset(self):
-        queryset = Borrowing.objects.all().select_related("user", "book")
+        if self.request.user.is_staff:
+            queryset = Borrowing.objects.all().select_related("user", "book")
+        else:
+            queryset = Borrowing.objects.filter(user=self.request.user).select_related(
+                "user", "book"
+            )
+        
         is_active = self.request.query_params.get("is_active", None)
         user_id = self.request.query_params.get("user_id", None)
         book_id = self.request.query_params.get("book_id", None)
