@@ -1,4 +1,3 @@
-from math import e
 from django.utils import timezone
 
 from rest_framework import mixins, status
@@ -6,6 +5,9 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.decorators import action
+
+from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
 
 from borrowing.models import Borrowing
 
@@ -45,15 +47,15 @@ class BorrowingViewSet(
             queryset = Borrowing.objects.filter(user=self.request.user).select_related(
                 "user", "book"
             )
-        
+
         is_active = self.request.query_params.get("is_active", None)
         user_id = self.request.query_params.get("user_id", None)
         book_id = self.request.query_params.get("book_id", None)
 
         if is_active == "true":
-            queryset = queryset.filter(actual_return_date=False)
+            queryset = queryset.filter(actual_return_date__isnull=True)
         if is_active == "false":
-            queryset = queryset.filter(actual_return_date=True)
+            queryset = queryset.filter(actual_return_date__isnull=False)
         if user_id:
             queryset = queryset.filter(user_id=user_id)
         if book_id:
@@ -83,3 +85,28 @@ class BorrowingViewSet(
 
     def perform_update(self, serializer):
         serializer.save(user=self.request.user)
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="is_active",
+                type=OpenApiTypes.BOOL,
+                required=False,
+                description="Filter by active borrowings",
+            ),
+            OpenApiParameter(
+                name="user_id",
+                type=OpenApiTypes.INT,
+                required=False,
+                description="Filter by user id",
+            ),
+            OpenApiParameter(
+                name="book_id",
+                type=OpenApiTypes.INT,
+                required=False,
+                description="Filter by book id",
+            ),
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
