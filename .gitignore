@@ -9,3 +9,6 @@ venv/
 **db.sqlite3
 .pylintrc
 media/
+celery.beat.log
+celery.log
+celerybeat-schedule
