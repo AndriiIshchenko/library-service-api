@@ -16,6 +16,7 @@ from borrowing.serializers import (
     BorrowingReturnBookSerializer,
     BorrowingSerializer,
 )
+from borrowing.tasks import notify_overdue_borrowings
 
 
 class BorrowingViewSet(
@@ -79,6 +80,17 @@ class BorrowingViewSet(
                 {"message": "Book returned successfully"}, status=status.HTTP_200_OK
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=["post"], url_path="notify-overdue")
+    def notify_overdue(self, request):
+        """
+        Send notifications about actual overdue borrowings via telegram.
+        """
+        notify_overdue_borrowings.delay()
+        return Response(
+            {"message": "Notification for overdue borrowings has been triggered."},
+            status=status.HTTP_200_OK,
+        )
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
