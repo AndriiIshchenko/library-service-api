@@ -2,6 +2,8 @@ from django.db import IntegrityError, transaction
 from rest_framework import serializers
 
 from borrowing.models import Borrowing
+from payment.models import Payment
+from payment.single_payment import create_payment_session
 
 
 class BorrowingSerializer(serializers.ModelSerializer):
@@ -30,6 +32,15 @@ class BorrowingSerializer(serializers.ModelSerializer):
                     book.inventory -= 1
                     book.save()
                     borrowing = Borrowing.objects.create(**validated_data)
+                    payment_session = create_payment_session(borrowing)
+                    Payment.objects.create(
+                        borrowing=borrowing,
+                        status="pending",
+                        type="payment",
+                        session_id=payment_session.id,
+                        session_url=payment_session.url,
+                        money_to_pay=borrowing.money_to_pay,
+                    )
                     return borrowing
             except IntegrityError as e:
                 if "expected_return_date_after_borrow_date" in str(e):
@@ -54,6 +65,7 @@ class BorrowingListSerializer(serializers.ModelSerializer):
             "borrow_date",
             "expected_return_date",
             "actual_return_date",
+            "money_to_pay",
         ]
         read_only_fields = ["id", "user", "actual_return_date"]
 
