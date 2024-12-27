@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 from borrowing.models import Borrowing
 
+from borrowing.tasks import notify_new_borrowing
 from payment.models import Payment
 from payment.single_payment import create_payment_session
 
@@ -44,6 +45,7 @@ class BorrowingSerializer(serializers.ModelSerializer):
                         session_url=payment_session.url,
                         money_to_pay=borrowing.money_to_pay,
                     )
+                    notify_new_borrowing.delay(borrowing.id)
                     return borrowing
             except IntegrityError as e:
                 if "expected_return_date_after_borrow_date" in str(e):
