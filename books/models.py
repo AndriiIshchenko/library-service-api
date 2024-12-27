@@ -10,7 +10,7 @@ class BookCoverType(models.TextChoices):
 
 
 class Book(models.Model):
-    title = models.CharField(max_length=100, blank=False, null=False) 
+    title = models.CharField(max_length=100, blank=False, null=False)
     author = models.CharField(max_length=120, blank=False, null=False)
     daily_fee = models.DecimalField(
         max_digits=5, decimal_places=2, default=Decimal("0.00"), blank=True, null=False
