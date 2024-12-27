@@ -26,3 +26,6 @@ class Payment(models.Model):
     money_to_pay = models.DecimalField(
         max_digits=5, decimal_places=2, default=Decimal("0.00"), blank=True, null=False
     )
+
+    def __str__(self):
+        return f"Payment {self.id} for borrowing {self.borrowing.id}"
