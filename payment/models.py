@@ -17,9 +17,13 @@ class PaymentType(models.TextChoices):
 
 
 class Payment(models.Model):
-    borrowing = models.ForeignKey(Borrowing, on_delete=models.CASCADE)
-    status = EnumField(PaymentStaus, null=True, blank=True)
-    type = EnumField(PaymentType, null=True, blank=True)
+    borrowing = models.ForeignKey(
+        Borrowing, on_delete=models.CASCADE, related_name="payments"
+    )
+    status = EnumField(
+        PaymentStaus, null=True, blank=True, default=PaymentStaus.PENDING
+    )
+    type = EnumField(PaymentType, null=True, blank=True, default=PaymentType.PAYMENT)
     created_at = models.DateTimeField(auto_now_add=True)
     session_id = models.CharField(max_length=255, null=True, blank=True)
     session_url = models.URLField(null=True, blank=True)
