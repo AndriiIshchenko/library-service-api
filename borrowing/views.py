@@ -12,6 +12,7 @@ from drf_spectacular.types import OpenApiTypes
 from borrowing.models import Borrowing
 
 from borrowing.serializers import (
+    BorrowingDetailSerializer,
     BorrowingListSerializer,
     BorrowingReturnBookSerializer,
     BorrowingSerializer,
@@ -66,6 +67,8 @@ class BorrowingViewSet(
     def get_serializer_class(self):
         if self.action == "list":
             return BorrowingListSerializer
+        if self.action == "retrieve":
+            return BorrowingDetailSerializer
         return BorrowingSerializer
 
     @action(detail=True, methods=["PATCH"], url_path="return")
