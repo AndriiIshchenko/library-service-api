@@ -33,7 +33,9 @@ class BorrowingSerializer(serializers.ModelSerializer):
                     book.inventory -= 1
                     book.save()
                     borrowing = Borrowing.objects.create(**validated_data)
-                    payment_session = create_payment_session(borrowing)
+                    payment_session = create_payment_session(
+                        borrowing, self.context["request"]
+                    )
                     Payment.objects.create(
                         borrowing=borrowing,
                         status="pending",
@@ -57,6 +59,7 @@ class BorrowingListSerializer(serializers.ModelSerializer):
     user = serializers.SlugRelatedField(many=False, read_only=True, slug_field="email")
     book = serializers.SlugRelatedField(many=False, read_only=True, slug_field="title")
     payment_status = serializers.SerializerMethodField()
+
     class Meta:
         model = Borrowing
         fields = [
@@ -82,6 +85,7 @@ class BorrowingListSerializer(serializers.ModelSerializer):
 class BorrowingForPaymentSerializer(serializers.ModelSerializer):
     user = serializers.SlugRelatedField(many=False, read_only=True, slug_field="email")
     book = serializers.SlugRelatedField(many=False, read_only=True, slug_field="title")
+
     class Meta:
         model = Borrowing
         fields = [
@@ -90,7 +94,7 @@ class BorrowingForPaymentSerializer(serializers.ModelSerializer):
             "book",
             "borrow_date",
             "expected_return_date",
-            "actual_return_date",            
+            "actual_return_date",
         ]
         read_only_fields = ["id", "user", "actual_return_date"]
 
@@ -121,7 +125,7 @@ class BorrowingDetailSerializer(serializers.ModelSerializer):
             payments = obj.payments.all()
             return PaymentSerializer(payments, many=True).data
         except Payment.DoesNotExist:
-            return f"Payment for this borrowing does not exist."
+            return "Payment for this borrowing does not exist."
 
 
 class BorrowingReturnBookSerializer(serializers.ModelSerializer):
