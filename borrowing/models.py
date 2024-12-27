@@ -16,6 +16,13 @@ class Borrowing(models.Model):
     def __str__(self):
         return f"{self.user} borrowed {self.book}"
 
+    @property
+    def money_to_pay(self):
+        amount = self.book.daily_fee * (
+            (self.expected_return_date - self.borrow_date).days + 1
+        )
+        return amount
+
     class Meta:
         ordering = ["-borrow_date"]
         constraints = [
