@@ -32,7 +32,7 @@ urlpatterns = [
     path("api/user/", include("user.urls", namespace="user")),
     path("api/books/", include("books.urls", namespace="books")),
     path("api/borrowings/", include("borrowing.urls", namespace="borrowings")),
-    path("api/payment/", include("payment.urls", namespace="payment")),
+    path("api/payments/", include("payment.urls", namespace="payment")),
     path("__debug__/", include("debug_toolbar.urls")),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
