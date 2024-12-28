@@ -4,6 +4,7 @@ from rest_framework import serializers
 from borrowing.models import Borrowing
 
 from borrowing.tasks import notify_new_borrowing
+from borrowing.utils import get_payment_serializer
 from payment.models import Payment
 from payment.single_payment import create_payment_session
 
@@ -22,11 +23,17 @@ class BorrowingSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "user", "actual_return_date"]
 
     def create(self, validated_data) -> Borrowing:
+        user = validated_data.get("user")
+        user_payments = Payment.objects.filter(
+            borrowing__user=user.id,
+        )
+        if user_payments and (
+            user_payments.filter(status="pending").exists()
+            or user_payments.first().status == "expired"
+        ):
+            raise serializers.ValidationError("You have pending payments.")
+
         book = validated_data.get("book")
-        # try:
-        #     book = Book.objects.get(id=book_id)
-        # except Book.DoesNotExist as e:
-        #     raise serializers.ValidationError("Book does not exist.") from e
 
         if book.inventory > 0:
             try:
@@ -79,11 +86,10 @@ class BorrowingListSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "user", "actual_return_date"]
 
     def get_payment_status(self, obj):
-        try:
-            payment = obj.payments.get()
+        payment = obj.payments.all().first()
+        if payment is not None:
             return payment.status
-        except Payment.DoesNotExist:
-            return f"Payment for this borrowing (id= {obj.id}) does not exist."
+        return f"Payment for this borrowing (id= {obj.id}) does not exist."
 
     def get_overdue(self, obj):
         if obj.overdue_days > 0 and obj.actual_return_date is None:
@@ -112,6 +118,7 @@ class BorrowingDetailSerializer(serializers.ModelSerializer):
     user = serializers.SlugRelatedField(many=False, read_only=True, slug_field="email")
     book = serializers.SlugRelatedField(many=False, read_only=True, slug_field="title")
     payment = serializers.SerializerMethodField()
+
     class Meta:
         model = Borrowing
         fields = [
@@ -130,8 +137,7 @@ class BorrowingDetailSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "user", "actual_return_date"]
 
     def get_payment(self, obj):
-        from payment.serializers import PaymentSerializer
-
+        PaymentSerializer = get_payment_serializer()
         try:
             payments = obj.payments.all()
             return PaymentSerializer(payments, many=True).data
