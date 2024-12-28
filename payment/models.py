@@ -6,7 +6,7 @@ from django_enum import EnumField
 from borrowing.models import Borrowing
 
 
-class PaymentStaus(models.TextChoices):
+class PaymentStatus(models.TextChoices):
     PENDING = "pending"
     PAID = "paid"
     EXPIRED = "expired"
@@ -22,7 +22,7 @@ class Payment(models.Model):
         Borrowing, on_delete=models.CASCADE, related_name="payments"
     )
     status = EnumField(
-        PaymentStaus, null=True, blank=True, default=PaymentStaus.PENDING
+        PaymentStatus, null=True, blank=True, default=PaymentStatus.PENDING
     )
     type = EnumField(PaymentType, null=True, blank=True, default=PaymentType.PAYMENT)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -34,3 +34,6 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"Payment {self.id} for borrowing {self.borrowing.id}"
+
+    class Meta:
+        ordering = ["-created_at"]
