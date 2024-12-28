@@ -1,5 +1,9 @@
+from django.utils import timezone
 from django.db import models
 from django.db.models.constraints import CheckConstraint, Q
+
+
+OVERDUE_FEE_MULTIPLIER = 3
 
 
 class Borrowing(models.Model):
@@ -17,11 +21,33 @@ class Borrowing(models.Model):
         return f"{self.user} borrowed {self.book}"
 
     @property
+    def expected_days(self):
+        days_borrowed = (
+            self.expected_return_date.date() - self.borrow_date.date()
+        ).days
+        return days_borrowed
+
+    @property
     def money_to_pay(self):
-        amount = self.book.daily_fee * (
-            (self.expected_return_date - self.borrow_date).days + 1
-        )
+        amount = self.book.daily_fee * self.expected_days
         return amount
+
+    @property
+    def overdue_days(self):
+        if self.actual_return_date:
+            overdue_days = (
+                self.actual_return_date.date() - self.expected_return_date.date()
+            ).days
+        else:
+            overdue_days = (
+                timezone.now().date() - self.expected_return_date.date()
+            ).days
+        return max(overdue_days, 0)
+
+    @property
+    def overdue_fee(self):
+        overdue_fee = self.book.daily_fee * OVERDUE_FEE_MULTIPLIER * self.overdue_days
+        return overdue_fee
 
     class Meta:
         ordering = ["-borrow_date"]
