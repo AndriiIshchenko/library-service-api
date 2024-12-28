@@ -75,7 +75,10 @@ class BorrowingViewSet(
     def return_book(self, request, pk=None):
         borrowing = self.get_object()
         serializer = BorrowingReturnBookSerializer(
-            borrowing, data={"actual_return_date": timezone.now()}, partial=True
+            borrowing, data={
+                "actual_return_date": timezone.now()}, 
+                partial=True,
+                context={"request": request}
         )
         if serializer.is_valid():
             self.perform_update(serializer)
