@@ -60,6 +60,7 @@ class BorrowingSerializer(serializers.ModelSerializer):
 class BorrowingListSerializer(serializers.ModelSerializer):
     user = serializers.SlugRelatedField(many=False, read_only=True, slug_field="email")
     book = serializers.SlugRelatedField(many=False, read_only=True, slug_field="title")
+    overdue = serializers.SerializerMethodField()
     payment_status = serializers.SerializerMethodField()
 
     class Meta:
@@ -73,6 +74,7 @@ class BorrowingListSerializer(serializers.ModelSerializer):
             "actual_return_date",
             "money_to_pay",
             "payment_status",
+            "overdue",
         ]
         read_only_fields = ["id", "user", "actual_return_date"]
 
@@ -82,6 +84,11 @@ class BorrowingListSerializer(serializers.ModelSerializer):
             return payment.status
         except Payment.DoesNotExist:
             return f"Payment for this borrowing (id= {obj.id}) does not exist."
+
+    def get_overdue(self, obj):
+        if obj.overdue_days > 0 and obj.actual_return_date is None:
+            return "Alarm"
+        return "OK"
 
 
 class BorrowingForPaymentSerializer(serializers.ModelSerializer):
@@ -105,7 +112,6 @@ class BorrowingDetailSerializer(serializers.ModelSerializer):
     user = serializers.SlugRelatedField(many=False, read_only=True, slug_field="email")
     book = serializers.SlugRelatedField(many=False, read_only=True, slug_field="title")
     payment = serializers.SerializerMethodField()
-
     class Meta:
         model = Borrowing
         fields = [
@@ -115,7 +121,10 @@ class BorrowingDetailSerializer(serializers.ModelSerializer):
             "borrow_date",
             "expected_return_date",
             "actual_return_date",
+            "expected_days",
             "money_to_pay",
+            "overdue_days",
+            "overdue_fee",
             "payment",
         ]
         read_only_fields = ["id", "user", "actual_return_date"]
@@ -147,6 +156,17 @@ class BorrowingReturnBookSerializer(serializers.ModelSerializer):
                 book = instance.book
                 book.inventory += 1
                 book.save()
+                payment_session = create_payment_session(
+                    instance, self.context["request"]
+                )
+                Payment.objects.create(
+                    borrowing=instance,
+                    status="pending",
+                    type="fine",
+                    session_id=payment_session.id,
+                    session_url=payment_session.url,
+                    money_to_pay=instance.overdue_fee,
+                )
                 return instance
         else:
             raise serializers.ValidationError("This book has already been returned.")
