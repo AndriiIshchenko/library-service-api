@@ -19,6 +19,10 @@ def debug_task(self):
 app.conf.beat_schedule = {
     "daily_notify_overdue_borrowings": {
         "task": "notify_overdue",
+        "schedule": crontab(hour=9, minute=0),
+    },
+    "expire_pending_payments_check": {
+        "task": "expire_pending_payments",
         "schedule": crontab(minute="*/1"),
     },
 }
