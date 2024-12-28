@@ -9,6 +9,7 @@ from borrowing.models import Borrowing
 class PaymentStaus(models.TextChoices):
     PENDING = "pending"
     PAID = "paid"
+    EXPIRED = "expired"
 
 
 class PaymentType(models.TextChoices):
