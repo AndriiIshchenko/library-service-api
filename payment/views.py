@@ -10,6 +10,7 @@ from payment.serializers import (
     PaymentListSerializer,
     PaymentSerializer,
 )
+from payment.tasks import notify_success_payment
 
 
 class PaymentViewSet(
@@ -34,6 +35,7 @@ class PaymentViewSet(
         payment = Payment.objects.get(session_id=session_id)
         payment.status = "paid"
         payment.save()
+        notify_success_payment(payment.id)
         return Response({"message": "Payment successful"}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["GET"], url_path="cancel")
