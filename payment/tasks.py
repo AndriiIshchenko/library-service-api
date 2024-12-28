@@ -18,6 +18,7 @@ TELEGRAM_API_URL = (
 CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
 CHAT_ID_2 = os.environ.get("TELEGRAM_CHAT_ID_2")
 
+
 @shared_task
 def notify_success_payment(payment_id):
     payment = Payment.objects.get(id=payment_id)
@@ -31,8 +32,6 @@ def notify_success_payment(payment_id):
     response = requests.post(TELEGRAM_API_URL, data=data, timeout=5)
     if response.status_code != 200:
         raise Exception(f"Failed to send a message: {response.text}")
-
-
 
 
 @shared_task(name="expire_pending_payments")

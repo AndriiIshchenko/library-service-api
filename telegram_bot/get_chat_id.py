@@ -19,8 +19,7 @@ async def get_chat_id():
         for update in updates:
             if update.message:
                 chat_id = update.message.chat.id
-                print(
-                    f"Chat ID: {chat_id}"
-                )
+                print(f"Chat ID: {chat_id}")
+
 
 asyncio.run(get_chat_id())

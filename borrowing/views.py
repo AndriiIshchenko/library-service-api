@@ -93,7 +93,7 @@ class BorrowingViewSet(
     @action(detail=True, methods=["post"], url_path="actual_payment")
     def actual_payment(self, request, pk=None):
         """
-        Update payment sessions if they are expired 
+        Update payment sessions if they are expired
         for borrowing overdue or regular payment.
         """
         borrowing = self.get_object()
