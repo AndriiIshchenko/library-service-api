@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.utils import timezone
 
 from rest_framework import mixins, status
@@ -18,6 +19,8 @@ from borrowing.serializers import (
     BorrowingSerializer,
 )
 from borrowing.tasks import notify_overdue_borrowings
+from payment.models import Payment
+from payment.single_payment import create_payment_session
 
 
 class BorrowingViewSet(
@@ -75,10 +78,10 @@ class BorrowingViewSet(
     def return_book(self, request, pk=None):
         borrowing = self.get_object()
         serializer = BorrowingReturnBookSerializer(
-            borrowing, data={
-                "actual_return_date": timezone.now()}, 
-                partial=True,
-                context={"request": request}
+            borrowing,
+            data={"actual_return_date": timezone.now()},
+            partial=True,
+            context={"request": request},
         )
         if serializer.is_valid():
             self.perform_update(serializer)
@@ -86,6 +89,48 @@ class BorrowingViewSet(
                 {"message": "Book returned successfully"}, status=status.HTTP_200_OK
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=["post"], url_path="actual_payment")
+    def actual_payment(self, request, pk=None):
+        """
+        Update payment sessions if they are expired 
+        for borrowing overdue or regular payment.
+        """
+        borrowing = self.get_object()
+        payment = borrowing.payments.filter(type="payment").first()
+        if payment.status == "expired":
+            with transaction.atomic():
+                payment_session = create_payment_session(borrowing, request)
+                Payment.objects.create(
+                    borrowing=borrowing,
+                    status="pending",
+                    type="payment",
+                    session_id=payment_session.id,
+                    session_url=payment_session.url,
+                    money_to_pay=borrowing.money_to_pay,
+                )
+                return Response(
+                    {"message": "Payment session updated."},
+                    status=status.HTTP_201_CREATED,
+                )
+
+        fee_payment = borrowing.payments.filter(type="fee").first()
+        if fee_payment.status == "expired":
+            with transaction.atomic():
+                payment_session = create_payment_session(borrowing, request)
+                Payment.objects.create(
+                    borrowing=borrowing,
+                    status="pending",
+                    type="fee",
+                    session_id=payment_session.id,
+                    session_url=payment_session.url,
+                    money_to_pay=borrowing.overdue_fee,
+                )
+
+                return Response(
+                    {"message": "Payment session updated."},
+                    status=status.HTTP_201_CREATED,
+                )
 
     @action(detail=False, methods=["post"], url_path="notify-overdue")
     def notify_overdue(self, request):
