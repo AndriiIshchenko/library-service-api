@@ -35,5 +35,5 @@ jobs:
       - name: Run flake8
         run: flake8 
     
-      - name: Run pytest
-        run: pytest
+      - name: Run test
+        run: python manage.py test 
