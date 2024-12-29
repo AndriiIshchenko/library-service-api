@@ -12,6 +12,7 @@ jobs:
 
     env:
       DJANGO_SETTINGS_MODULE: "library_service.settings"
+      DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
 
     steps:
       - name: Checkout repo
