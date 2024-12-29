@@ -10,6 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
+    env:
+      DJANGO_SETTINGS_MODULE: "library_service.settings"
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
