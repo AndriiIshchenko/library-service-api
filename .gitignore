@@ -12,3 +12,4 @@ media/
 celery.beat.log
 celery.log
 celerybeat-schedule
+data/
