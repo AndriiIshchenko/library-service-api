@@ -27,7 +27,7 @@ class Payment(models.Model):
     type = EnumField(PaymentType, null=True, blank=True, default=PaymentType.PAYMENT)
     created_at = models.DateTimeField(auto_now_add=True)
     session_id = models.CharField(max_length=255, null=True, blank=True)
-    session_url = models.URLField(null=True, blank=True)
+    session_url = models.URLField(null=True, blank=True, max_length=500)
     money_to_pay = models.DecimalField(
         max_digits=5, decimal_places=2, default=Decimal("0.00"), blank=True, null=False
     )
