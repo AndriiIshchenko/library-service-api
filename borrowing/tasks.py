@@ -16,6 +16,7 @@ TELEGRAM_API_URL = (
 )
 CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
 
+
 @shared_task
 def notify_new_borrowing(borrowing_id):
     borrowing = Borrowing.objects.get(id=borrowing_id)

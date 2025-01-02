@@ -17,6 +17,7 @@ TELEGRAM_API_URL = (
 )
 CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
 
+
 @shared_task
 def notify_success_payment(payment_id):
     payment = Payment.objects.get(id=payment_id)
