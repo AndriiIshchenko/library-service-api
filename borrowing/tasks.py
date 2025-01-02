@@ -12,11 +12,9 @@ from .models import Borrowing
 load_dotenv()
 
 TELEGRAM_API_URL = (
-    f"https://api.telegram.org/bot{os.environ.get("TELEGRAM_BOT_TOKEN")}/sendMessage"
+    f"https://api.telegram.org/bot{os.environ.get('TELEGRAM_BOT_TOKEN')}/sendMessage"
 )
 CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
-CHAT_ID_2 = os.environ.get("TELEGRAM_CHAT_ID_2")
-
 
 @shared_task
 def notify_new_borrowing(borrowing_id):
@@ -26,8 +24,6 @@ def notify_new_borrowing(borrowing_id):
         f"Expected return date: {borrowing.expected_return_date}."
     )
     data = {"chat_id": CHAT_ID, "text": message}
-    response = requests.post(TELEGRAM_API_URL, data=data, timeout=5)
-    data = {"chat_id": CHAT_ID_2, "text": message}
     response = requests.post(TELEGRAM_API_URL, data=data, timeout=5)
     if response.status_code != 200:
         raise Exception(f"Failed to send a message: {response.text}")
@@ -49,8 +45,6 @@ def notify_overdue_borrowings():
                 f"Expected return date: {borrowing.expected_return_date}."
             )
             data = {"chat_id": CHAT_ID, "text": message}
-            response = requests.post(TELEGRAM_API_URL, data=data, timeout=5)
-            data = {"chat_id": CHAT_ID_2, "text": message}
             response = requests.post(TELEGRAM_API_URL, data=data, timeout=5)
             if response.status_code != 200:
                 raise Exception(f"Failed to send a message: {response.text}")
